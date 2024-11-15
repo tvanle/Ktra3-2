@@ -9,12 +9,13 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Admin
  */
 public class MainForm extends javax.swing.JFrame {
-    private List<MonHoc>      danhSachMonHoc;
+    private List<MonHoc> danhSachMonHoc;
 
     public MainForm() {
         initComponents();
@@ -22,8 +23,8 @@ public class MainForm extends javax.swing.JFrame {
         LoadTable();
 
     }
-    private void LoadTable()
-    {
+
+    private void LoadTable() {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
         for (MonHoc mh : danhSachMonHoc) {
@@ -50,7 +51,7 @@ public class MainForm extends javax.swing.JFrame {
         btnTimkiem = new javax.swing.JButton();
         cbSapxep = new javax.swing.JComboBox<>();
         txtFieldTimkiem = new javax.swing.JTextField();
-
+        btnThongke = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -90,7 +91,7 @@ public class MainForm extends javax.swing.JFrame {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 int index = table.getSelectedRow();
                 if (index >= 0) {
-                    MonHoc monHoc = danhSachMonHoc.get(index);
+                    MonHoc    monHoc    = danhSachMonHoc.get(index);
                     SuaDialog suaDialog = new SuaDialog(MainForm.this, monHoc);
                     suaDialog.setVisible(true);
 
@@ -117,14 +118,26 @@ public class MainForm extends javax.swing.JFrame {
             }
         });
 
-        btnTimkiem.setLabel("Timkiem:");
-
         cbSapxep.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Tenmon", "TinChi"}));
 
+        btnTimkiem.setLabel("Timkiem:");
         txtFieldTimkiem.setText("jTextField1");
         txtFieldTimkiem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtFieldTimkiemActionPerformed(evt);
+            }
+        });
+
+        btnTimkiem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                onClickTimKiem(evt);
+            }
+        });
+
+        btnThongke.setText("Thongke");
+        btnThongke.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnThongKeActionPerformed(evt);
             }
         });
 
@@ -142,8 +155,11 @@ public class MainForm extends javax.swing.JFrame {
                                                 .addComponent(btnXoa)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(btnSua)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(btnLuu))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(btnLuu)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnThongke))
+
                                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(sapxeptheo)
@@ -165,7 +181,9 @@ public class MainForm extends javax.swing.JFrame {
                                         .addComponent(btnThem)
                                         .addComponent(btnXoa)
                                         .addComponent(btnSua)
-                                        .addComponent(btnLuu))
+                                        .addComponent(btnLuu)
+                                        .addComponent(btnThongke))
+
                                 .addGap(30, 30, 30)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(sapxeptheo)
@@ -180,6 +198,22 @@ public class MainForm extends javax.swing.JFrame {
 
     private void txtFieldTimkiemActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
+    }
+
+    private void onClickTimKiem(java.awt.event.ActionEvent evt) {
+        String keyword = txtFieldTimkiem.getText();
+        List<MonHoc> result = danhSachMonHoc.stream()
+                .filter(mh -> mh.getTenMonHoc().toLowerCase().contains(keyword.toLowerCase()) || mh.getLoaiMonHoc().toLowerCase().contains(keyword.toLowerCase()))
+                .collect(Collectors.toList());
+
+        // Show the results in a new dialog
+        TimkiemDialog dialog = new TimkiemDialog(this, result);
+        dialog.setVisible(true);
+    }
+
+    public void btnThongKeActionPerformed(java.awt.event.ActionEvent evt) {
+        StatisticsDialog dialog = new StatisticsDialog(this, danhSachMonHoc);
+        dialog.setVisible(true);
     }
 
     private void sapxeptheoActionPerformed(java.awt.event.ActionEvent evt) {
@@ -203,16 +237,14 @@ public class MainForm extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0); // Xóa dữ liệu cũ trong bảng
         for (MonHoc mh : danhSachMonHoc) {
-            model.addRow(new Object[]{mh.getId(), mh.getTenMonHoc(), mh.getSoTinChi(), mh.getLoaiMonHoc()});
+            model.addRow(new Object[]{mh.getMaMonHoc(), mh.getTenMonHoc(), mh.getSoTinChi(), mh.getLoaiMonHoc()});
         }
-
-        JOptionPane.showMessageDialog(this, "Sắp xếp thành công theo: " + tieuChi, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
 
 
     private void btnThemActionPerformed(java.awt.event.ActionEvent evt) {
-        int nextMaMonHoc = getNextMaMonHoc();
-        ThemDialog themDialog = new ThemDialog(this, nextMaMonHoc);
+        int        nextMaMonHoc = getNextMaMonHoc();
+        ThemDialog themDialog   = new ThemDialog(this, nextMaMonHoc);
         themDialog.setVisible(true);
 
         MonHoc monHocMoi = themDialog.getMonHocMoi();
@@ -277,6 +309,7 @@ public class MainForm extends javax.swing.JFrame {
     private javax.swing.JButton           sapxeptheo;
     private javax.swing.JTable            table;
     private javax.swing.JTextField        txtFieldTimkiem;
+    private javax.swing.JButton           btnThongke;
     // End of variables declaration
 }
 
